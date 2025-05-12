@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: urumia-ac-demo-free-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: ip-country-9599bb66cc-urumia-ac-demo.apps.ir-central1.arvancaas.ir
+    http:
+      paths:
+      - backend:
+          service:
+            name: urumia-ac-ip-country-lookup
+            port:
+              number: 80
+        path: /
+        pathType: Prefix

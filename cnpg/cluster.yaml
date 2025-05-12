@@ -1,0 +1,41 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: ip-country-db
+spec:
+  instances: 1
+
+  superuserSecret:
+    name: superuser-secret
+
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+      secret:
+        name: app-secret
+      postInitApplicationSQL:
+        - |
+          CREATE TABLE IF NOT EXISTS ip_records (
+              id VARCHAR(15) PRIMARY KEY,
+              country VARCHAR(255) NOT NULL
+          );
+        - GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO app;
+        - GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO app;
+
+
+  monitoring:
+    disableDefaultQueries: false
+    enablePodMonitor: true
+
+  storage:
+    size: 1Gi
+---
+apiVersion: v1
+data:
+  username: YXBw
+  password: cGFzc3dvcmQ=
+kind: Secret
+metadata:
+  name: app-secret
+type: kubernetes.io/basic-auth

@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/instance: arvan-test
+  name: {{ include "ip-country-lookup.fullname" . }}
+spec:
+  namespaceSelector: {}
+  podMetricsEndpoints:
+  - interval: 10s
+    port: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: arvan-test

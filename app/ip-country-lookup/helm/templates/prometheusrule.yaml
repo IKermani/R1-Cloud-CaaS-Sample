@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/instance: arvan-test
+
+  name: {{ include "ip-country-lookup.fullname" . }}
+spec:
+  groups:
+  - name: ip_country_requests_total.rules
+    rules:
+    - expr: |-
+        sum(increase(ip_country_requests_total[1m])) > 10
+      record: 'ip_country_requests_total:hit_rate1m'

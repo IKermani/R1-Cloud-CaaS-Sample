@@ -1,0 +1,53 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    paths:
+      - 'app/ip-country-lookup/manifests/**/*'
+  repository_dispatch:
+    types: [image-built]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: false
+        default: 'latest'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Get image tag
+        id: get-tag
+        run: |
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            echo "IMAGE_TAG=${{ github.event.client_payload.image_tag }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.image_tag }}" != "" ]]; then
+            echo "IMAGE_TAG=${{ github.event.inputs.image_tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        
+      - name: Create kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" > kubeconfig
+          chmod 600 kubeconfig
+          
+      - name: Update image in manifests
+        run: |
+          sed -i "s|image:.*|image: registry-9599bb66cc-k3s-stg.apps.ir-central1.arvancaas.ir/ip-country:${{ steps.get-tag.outputs.IMAGE_TAG }}|g" app/ip-country-lookup/manifests/deployment.yaml
+          
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl --kubeconfig=kubeconfig apply -f app/ip-country-lookup/manifests/
+          
+      - name: Verify deployment
+        run: |
+          kubectl --kubeconfig=kubeconfig rollout status deployment/ip-country-lookup -n default --timeout=180s

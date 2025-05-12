@@ -1,0 +1,59 @@
+enabled: true
+kubeControllerManager:
+  enabled: true
+nodeExporter:
+  enabled: true
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: true
+    configReloaders: true
+    general: true
+    k8s: true
+    kubeApiserver: true
+    kubeApiserverAvailability: true
+    kubeApiserverSlos: true
+    kubelet: true
+    kubeProxy: true
+    kubePrometheusGeneral: true
+    kubePrometheusNodeRecording: true
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesStorage: true
+    kubernetesSystem: true
+    kubeScheduler: true
+    kubeStateMetrics: true
+    network: true
+    node: true
+    nodeExporterAlerting: true
+    nodeExporterRecording: true
+    prometheus: true
+    prometheusOperator: true
+
+#nodeSelector:
+  #workload: monitor
+prometheus:
+  prometheusSpec:
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+  #nodeSelector:
+    #workload: monitor
+grafana:
+  enabled: true
+  defaultDashboardsTimezone: Asia/Tehran
+  # -- the grafana admin password
+  adminPassword: prom-operator
+  defaultDashboardsEnabled: true
+  sidecar:
+      dashboards:
+        enabled: true
+  #nodeSelector:
+    #workload: monitor
+alertmanager:
+  enabled: true
+  #alerManagerSpec:
+    #nodeSelector:
+      #workload: monitor

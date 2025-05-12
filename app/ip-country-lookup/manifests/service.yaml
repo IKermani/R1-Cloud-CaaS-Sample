@@ -1,0 +1,22 @@
+# Source: ip-country-lookup/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: urumia-ac-ip-country-lookup
+  labels:
+    app.kubernetes.io/name: ip-country-lookup
+    app.kubernetes.io/instance: urumia-ac
+    app.kubernetes.io/version: "0.1.0"
+  # annotations:
+  #   prometheus.io/port: "http"
+  #   prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: ip-country-lookup
+    app.kubernetes.io/instance: urumia-ac

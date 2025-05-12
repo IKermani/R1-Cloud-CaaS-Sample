@@ -1,0 +1,62 @@
+stages:
+  - build
+
+variables:
+  # Define your variables here, such as registry, image name, and tag
+  VERSION: 0.1.0
+  DOCKER_IMAGE_NAME: registry-9599bb66cc-k3s-stg.apps.ir-central1.arvancaas.ir/ip-country
+  DOCKER_IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  CHART_REPO_CHANNEL: stable
+  CHART_REPO: https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/packages/helm/api/$CHART_REPO_CHANNEL/charts
+
+
+
+build docker image:
+  stage: build
+  # tags:
+  #   - saas-linux-small-amd64
+  rules:
+    - changes:
+        paths:
+          - app/ip-country-lookup/src/**/*
+          - app/ip-country-lookup/requirements.txt
+          - app/ip-country-lookup/Dockerfile
+        
+  image: docker:24.0.7-dind
+  services:
+    - docker:24.0.7-dind
+  script:
+    # build the image
+    - docker build -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG -f $CI_PROJECT_DIR/app/ip-country-lookup/Dockerfile $CI_PROJECT_DIR/app/ip-country-lookup
+
+    # always tag it as latest
+    - docker tag $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:latest
+
+    # # login to gitlab registry
+    # - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $DOCKER_REGISTRY
+
+    # login to docker hub
+    - docker login -u $DOCKER_USER -p $DOCKER_PASS
+
+    # push images
+    - docker push $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG
+    - docker push $DOCKER_IMAGE_NAME:latest
+
+
+build helm chart:
+  stage: build
+  rules:
+    - changes:
+        paths:
+          - app/ip-country-lookup/helm/**/*
+  image: alpine/k8s:1.28.3
+  before_script:
+    - helm version
+  script:
+    # build helm chart
+    - helm package --version=$VERSION $CI_PROJECT_DIR/app/ip-country-lookup/helm
+    
+    # push chart to gitlab packages
+    - curl --request POST --form 'chart=@ip-country-lookup-0.1.0.tgz' --user gitlab-ci-token:$CI_JOB_TOKEN $CHART_REPO
+
+

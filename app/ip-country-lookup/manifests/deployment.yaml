@@ -1,0 +1,58 @@
+---
+# Source: ip-country-lookup/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: urumia-ac-ip-country-lookup
+  labels:
+    app.kubernetes.io/name: ip-country-lookup
+    app.kubernetes.io/instance: urumia-ac
+    app.kubernetes.io/version: "0.1.0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ip-country-lookup
+      app.kubernetes.io/instance: urumia-ac
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ip-country-lookup
+        app.kubernetes.io/instance: urumia-ac
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      serviceAccountName: default
+      securityContext:
+        {}
+      containers:
+        - name: ip-country-lookup
+          securityContext:
+            {}
+          image: "registry-9599bb66cc-k3s-stg.apps.ir-central1.arvancaas.ir/ip-country:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: urumia-ac-ip-country-lookup
+                key: DATABASE_URL
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: http
+          resources:
+            limits:
+              cpu: 100m
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi

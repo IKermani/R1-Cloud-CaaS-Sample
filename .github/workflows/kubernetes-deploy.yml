@@ -50,4 +50,4 @@ jobs:
           
       - name: Verify deployment
         run: |
-          kubectl --kubeconfig=kubeconfig rollout status deployment/ip-country-lookup --timeout=180s
+          kubectl --kubeconfig=kubeconfig rollout status deployment/urumia-ac-ip-country-lookup --timeout=180s
